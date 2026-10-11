@@ -3,5 +3,9 @@
   "key.tokyoghoul.kagune": "Показать/убрать кагуне",
   "key.tokyoghoul.dash": "Рывок кагуне",
   "key.tokyoghoul.rage": "Ярость",
-  "key.tokyoghoul.bite": "Укус"
+  "key.tokyoghoul.bite": "Укус",
+  "key.tokyoghoul.block": "Блок (удерживать)",
+  "key.tokyoghoul.barrage": "Шквал",
+  "key.tokyoghoul.skill_tree": "Дерево навыков",
+  "key.tokyoghoul.quests": "Задания"
 }
