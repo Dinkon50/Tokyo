@@ -61,14 +61,26 @@ public record AbilityMessage(int ability) {
 
     private static void activateRage(ServerPlayer player) {
         long now = player.level().getGameTime();
+        if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")) {
+            player.displayClientMessage(Component.literal("Ярость уже активна"), true);
+            return;
+        }
         if (player.getPersistentData().getLong("tokyoghoul_rage_ready") > now) {
             player.displayClientMessage(Component.literal("Ярость ещё не готова"), true);
             return;
         }
+        int rage = player.getPersistentData().getInt("tokyoghoul_rage_points");
+        if (rage < 100) {
+            player.displayClientMessage(Component.literal("Для ярости нужно заполнить шкалу до 100"), true);
+            return;
+        }
+        player.getPersistentData().putInt("tokyoghoul_rage_points", 0);
+        player.getPersistentData().putBoolean("tokyoghoul_rage_active", true);
+        player.getPersistentData().putLong("tokyoghoul_rage_end", now + 400);
+        player.getPersistentData().putLong("tokyoghoul_rage_ready", now + 1200);
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 400, 0, false, true, true));
         player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 0, false, true, true));
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, 0, false, true, true));
-        player.getPersistentData().putLong("tokyoghoul_rage_ready", now + 1200);
         player.displayClientMessage(Component.literal("Ярость активирована на 20 секунд"), true);
     }
 
