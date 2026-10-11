@@ -133,35 +133,26 @@ public record AbilityMessage(int ability) {
             player.displayClientMessage(Component.literal("Шквал ещё перезаряжается"), true);
             return;
         }
-        if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
-            player.displayClientMessage(Component.literal("Нельзя начать шквал во время блока"), true);
+        if (player.getPersistentData().getBoolean("tokyoghoul_blocking")
+                || player.getPersistentData().getBoolean("tokyoghoul_barrage_active")) {
+            player.displayClientMessage(Component.literal("Сейчас нельзя начать шквал"), true);
             return;
         }
-        player.getPersistentData().putLong("tokyoghoul_barrage_ready", now + 90);
-        Vec3 eye = player.getEyePosition();
-        Vec3 look = player.getLookAngle().normalize();
-        var targets = player.level().getEntitiesOfClass(LivingEntity.class,
-                player.getBoundingBox().inflate(3.0, 1.5, 3.0),
-                e -> e != player && e.isAlive() && !e.isSpectator())
-            .stream()
-            .filter(e -> {
-                Vec3 delta = e.getBoundingBox().getCenter().subtract(eye);
-                double forward = delta.dot(look);
-                return forward >= 0.0 && forward <= 2.8
-                    && Math.abs(delta.dot(new Vec3(-look.z, 0, look.x))) <= 1.5;
-            }).toList();
-        if (targets.isEmpty()) {
+        LivingEntity target = targetInSight(player, 3.0);
+        if (target == null) {
             player.displayClientMessage(Component.literal("Нет цели перед вами для шквала"), true);
             return;
         }
-        for (LivingEntity target : targets) {
-            if (target instanceof net.minecraft.world.entity.player.Player targetPlayer && targetPlayer.isBlocking()) {
-                continue;
-            }
-            target.hurt(player.damageSources().playerAttack(player), 8.0F);
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 90, 4, false, true, true));
+        if (target instanceof net.minecraft.world.entity.player.Player targetPlayer && targetPlayer.isBlocking()) {
+            player.displayClientMessage(Component.literal("Цель блокирует — шквал не начался"), true);
+            return;
         }
-        player.displayClientMessage(Component.literal("Шквал!"), true);
+        player.getPersistentData().putBoolean("tokyoghoul_barrage_active", true);
+        player.getPersistentData().putUUID("tokyoghoul_barrage_target", target.getUUID());
+        player.getPersistentData().putLong("tokyoghoul_barrage_end", now + 90);
+        player.getPersistentData().putLong("tokyoghoul_barrage_next_hit", now);
+        player.getPersistentData().putLong("tokyoghoul_barrage_ready", now + 140);
+        player.displayClientMessage(Component.literal("Шквал начат"), true);
     }
 
     private static void bite(ServerPlayer player) {
