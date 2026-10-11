@@ -42,6 +42,16 @@ public final class CombatEvents {
         if (event.player instanceof ServerPlayer player) {
             if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
                 player.setSprinting(false);
+                // Reduce walking speed while blocking without relying on potion effects.
+                if (player.isSprinting()) player.setSprinting(false);
+                net.minecraft.world.phys.Vec3 motion = player.getDeltaMovement();
+                player.setDeltaMovement(motion.x * 0.556, motion.y, motion.z * 0.556);
+            }
+            if (player.getPersistentData().getLong("tokyoghoul_barrage_locked_until")
+                    > player.level().getGameTime()) {
+                player.setSprinting(false);
+                player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+                player.hurtMarked = true;
             }
 
             if (player.getPersistentData().getBoolean("tokyoghoul_barrage_active")) {
@@ -60,6 +70,7 @@ public final class CombatEvents {
                         if (entity instanceof net.minecraft.world.entity.LivingEntity target && target.isAlive()) {
                             if (target instanceof net.minecraft.world.entity.player.Player targetPlayer && targetPlayer.isBlocking()) {
                                 player.getPersistentData().putBoolean("tokyoghoul_barrage_active", false);
+                                target.getPersistentData().putLong("tokyoghoul_barrage_locked_until", 0);
                             } else {
                                 target.hurt(player.damageSources().playerAttack(player), 1.0F);
                                 target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
@@ -76,6 +87,14 @@ public final class CombatEvents {
                 if (now >= player.getPersistentData().getLong("tokyoghoul_barrage_end")
                         || player.getPersistentData().getInt("tokyoghoul_barrage_hits") >= 32) {
                     player.getPersistentData().putBoolean("tokyoghoul_barrage_active", false);
+                    try {
+                        java.util.UUID targetId = player.getPersistentData().getUUID("tokyoghoul_barrage_target");
+                        net.minecraft.world.entity.Entity entity = player.level().getEntitiesOfClass(
+                                net.minecraft.world.entity.LivingEntity.class,
+                                player.getBoundingBox().inflate(12.0),
+                                e -> e.getUUID().equals(targetId)).stream().findFirst().orElse(null);
+                        if (entity != null) entity.getPersistentData().putLong("tokyoghoul_barrage_locked_until", 0);
+                    } catch (RuntimeException ignored) { }
                     player.getPersistentData().putInt("tokyoghoul_barrage_hits", 0);
                 }
             }
