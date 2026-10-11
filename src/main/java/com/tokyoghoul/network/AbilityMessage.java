@@ -55,6 +55,7 @@ public record AbilityMessage(int ability) {
                 case 8 -> player.displayClientMessage(Component.literal("Задания: система ещё разрабатывается"), true);
                 case 9 -> grapple(player);
                 case 10 -> grabPull(player);
+                case 11 -> upgradeRage(player);
                 default -> { }
             }
         });
@@ -93,7 +94,9 @@ public record AbilityMessage(int ability) {
         }
         player.getPersistentData().putInt("tokyoghoul_rage_points", 0);
         player.getPersistentData().putBoolean("tokyoghoul_rage_active", true);
-        player.getPersistentData().putLong("tokyoghoul_rage_end", now + 400);
+        int rank = player.getPersistentData().getInt("tokyoghoul_rage_rank");
+        int durationTicks = 400 + rank * 100;
+        player.getPersistentData().putLong("tokyoghoul_rage_end", now + durationTicks);
         player.getPersistentData().putLong("tokyoghoul_rage_ready", now + 1200);
         // Apply the requested base rage bonuses directly instead of potion effects
         // whose default percentages would overshoot the design values.
@@ -102,13 +105,30 @@ public record AbilityMessage(int ability) {
             UUID modifierId = UUID.fromString("a5d3c0b1-5f82-4e1c-9a3d-7f5b2c6e8d10");
             speed.removeModifier(modifierId);
             speed.addTransientModifier(new AttributeModifier(
-                    modifierId, "Tokyo Ghoul RPG rage speed", 0.05D,
+                    modifierId, "Tokyo Ghoul RPG rage speed", 0.05D + rank * 0.01875D,
                     AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
-        player.displayClientMessage(Component.literal("Ярость активирована на 20 секунд"), true);
+        player.displayClientMessage(Component.literal("Ярость активирована на " + (durationTicks / 20) + " секунд"), true);
     }
 
 
+
+
+    private static void upgradeRage(ServerPlayer player) {
+        int rank = player.getPersistentData().getInt("tokyoghoul_rage_rank");
+        int points = player.getPersistentData().getInt("tokyoghoul_skill_points");
+        if (rank >= 8) {
+            player.displayClientMessage(Component.literal("Путь ярости уже полностью улучшен"), true);
+            return;
+        }
+        if (points < 1) {
+            player.displayClientMessage(Component.literal("Нужно очко навыка. Очко даётся за каждые 5 убийств."), true);
+            return;
+        }
+        player.getPersistentData().putInt("tokyoghoul_skill_points", points - 1);
+        player.getPersistentData().putInt("tokyoghoul_rage_rank", rank + 1);
+        player.displayClientMessage(Component.literal("Путь ярости улучшен: ранг " + (rank + 1) + "/8. Осталось очков: " + (points - 1)), true);
+    }
 
     private static LivingEntity targetInSight(ServerPlayer player, double range) {
         Vec3 eye = player.getEyePosition();
