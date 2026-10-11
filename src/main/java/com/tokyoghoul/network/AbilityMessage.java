@@ -150,6 +150,7 @@ public record AbilityMessage(int ability) {
         player.getPersistentData().putBoolean("tokyoghoul_barrage_active", true);
         player.getPersistentData().putUUID("tokyoghoul_barrage_target", target.getUUID());
         player.getPersistentData().putLong("tokyoghoul_barrage_end", now + 90);
+        player.getPersistentData().putInt("tokyoghoul_barrage_hits", 0);
         player.getPersistentData().putLong("tokyoghoul_barrage_next_hit", now);
         player.getPersistentData().putLong("tokyoghoul_barrage_ready", now + 140);
         player.displayClientMessage(Component.literal("Шквал начат"), true);
