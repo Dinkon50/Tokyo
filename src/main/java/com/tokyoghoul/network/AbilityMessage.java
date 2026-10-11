@@ -26,6 +26,20 @@ public record AbilityMessage(int ability) {
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
             if (player == null || player.isSpectator()) return;
+            long now = player.level().getGameTime();
+            // A barrage is a committed animation: don't allow its attacker to cancel it
+            // into another ability. Always permit the release packet for hold-to-block.
+            if (message.ability != 5
+                    && player.getPersistentData().getBoolean("tokyoghoul_barrage_active")) {
+                player.displayClientMessage(Component.literal("Во время шквала нельзя использовать другие способности"), true);
+                return;
+            }
+            // Targets locked by a barrage cannot activate their own abilities.
+            if (message.ability != 5
+                    && player.getPersistentData().getLong("tokyoghoul_barrage_locked_until") > now) {
+                player.displayClientMessage(Component.literal("Вы оглушены шквалом"), true);
+                return;
+            }
             switch (message.ability) {
                 case 0 -> toggleKagune(player);
                 case 1 -> dash(player);
@@ -150,6 +164,7 @@ public record AbilityMessage(int ability) {
         player.getPersistentData().putBoolean("tokyoghoul_barrage_active", true);
         player.getPersistentData().putUUID("tokyoghoul_barrage_target", target.getUUID());
         player.getPersistentData().putLong("tokyoghoul_barrage_end", now + 90);
+        target.getPersistentData().putLong("tokyoghoul_barrage_locked_until", now + 90);
         player.getPersistentData().putInt("tokyoghoul_barrage_hits", 0);
         player.getPersistentData().putLong("tokyoghoul_barrage_next_hit", now);
         player.getPersistentData().putLong("tokyoghoul_barrage_ready", now + 140);
