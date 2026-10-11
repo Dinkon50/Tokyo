@@ -53,14 +53,10 @@ public final class CombatEvents {
                 if (expectedHits > hits) {
                     try {
                         java.util.UUID targetId = player.getPersistentData().getUUID("tokyoghoul_barrage_target");
-                        net.minecraft.world.entity.Entity entity = player.level().getEntity(
-                                player.level().getEntities().get(0).getId());
-                        entity = player.level().getPlayerByUUID(targetId);
-                        if (entity == null) {
-                            entity = player.level().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class,
-                                    player.getBoundingBox().inflate(4.0), e -> e.getUUID().equals(targetId))
-                                    .stream().findFirst().orElse(null);
-                        }
+                        net.minecraft.world.entity.Entity entity = player.level().getEntitiesOfClass(
+                                net.minecraft.world.entity.LivingEntity.class,
+                                player.getBoundingBox().inflate(4.0),
+                                e -> e.getUUID().equals(targetId)).stream().findFirst().orElse(null);
                         if (entity instanceof net.minecraft.world.entity.LivingEntity target && target.isAlive()) {
                             if (target instanceof net.minecraft.world.entity.player.Player targetPlayer && targetPlayer.isBlocking()) {
                                 player.getPersistentData().putBoolean("tokyoghoul_barrage_active", false);
