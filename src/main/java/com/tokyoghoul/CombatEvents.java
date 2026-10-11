@@ -3,6 +3,7 @@ package com.tokyoghoul;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import java.util.UUID;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -45,6 +46,17 @@ public final class CombatEvents {
             return;
         }
         event.setCanceled(true);
+    }
+
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")) return;
+        int rage = player.getPersistentData().getInt("tokyoghoul_rage_points");
+        player.getPersistentData().putInt("tokyoghoul_rage_points", Math.min(100, rage + 10));
+        player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                "Ярость +" + Math.min(10, 100 - rage)), true);
     }
 
     @SubscribeEvent
