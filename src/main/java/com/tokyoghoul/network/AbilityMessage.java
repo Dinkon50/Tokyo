@@ -33,6 +33,9 @@ public record AbilityMessage(int ability) {
                 case 3 -> bite(player);
                 case 4 -> player.getPersistentData().putBoolean("tokyoghoul_blocking", true);
                 case 5 -> player.getPersistentData().putBoolean("tokyoghoul_blocking", false);
+                case 6 -> barrage(player);
+                case 7 -> player.displayClientMessage(Component.literal("Дерево навыков: интерфейс ещё разрабатывается"), true);
+                case 8 -> player.displayClientMessage(Component.literal("Задания: система ещё разрабатывается"), true);
                 default -> { }
             }
         });
@@ -65,6 +68,44 @@ public record AbilityMessage(int ability) {
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, 0, false, true, true));
         player.getPersistentData().putLong("tokyoghoul_rage_ready", now + 1200);
         player.displayClientMessage(Component.literal("Ярость активирована на 20 секунд"), true);
+    }
+
+
+    private static void barrage(ServerPlayer player) {
+        long now = player.level().getGameTime();
+        if (player.getPersistentData().getLong("tokyoghoul_barrage_ready") > now) {
+            player.displayClientMessage(Component.literal("Шквал ещё перезаряжается"), true);
+            return;
+        }
+        if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
+            player.displayClientMessage(Component.literal("Нельзя начать шквал во время блока"), true);
+            return;
+        }
+        player.getPersistentData().putLong("tokyoghoul_barrage_ready", now + 90);
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle().normalize();
+        var targets = player.level().getEntitiesOfClass(LivingEntity.class,
+                player.getBoundingBox().inflate(3.0, 1.5, 3.0),
+                e -> e != player && e.isAlive() && !e.isSpectator())
+            .stream()
+            .filter(e -> {
+                Vec3 delta = e.getBoundingBox().getCenter().subtract(eye);
+                double forward = delta.dot(look);
+                return forward >= 0.0 && forward <= 2.8
+                    && Math.abs(delta.dot(new Vec3(-look.z, 0, look.x))) <= 1.5;
+            }).toList();
+        if (targets.isEmpty()) {
+            player.displayClientMessage(Component.literal("Нет цели перед вами для шквала"), true);
+            return;
+        }
+        for (LivingEntity target : targets) {
+            if (target instanceof net.minecraft.world.entity.player.Player targetPlayer && targetPlayer.isBlocking()) {
+                continue;
+            }
+            target.hurt(player.damageSources().playerAttack(player), 8.0F);
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 90, 4, false, true, true));
+        }
+        player.displayClientMessage(Component.literal("Шквал!"), true);
     }
 
     private static void bite(ServerPlayer player) {
