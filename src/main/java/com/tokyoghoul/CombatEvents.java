@@ -51,8 +51,17 @@ public final class CombatEvents {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide) return;
         if (event.player instanceof ServerPlayer player) {
+            var movement = player.getAttribute(Attributes.MOVEMENT_SPEED);
+            UUID blockSpeedId = UUID.fromString("6a2c0f51-9d33-4e8c-a1f6-2b7d4c9e105a");
             if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
                 player.setSprinting(false);
+                if (movement != null && movement.getModifier(blockSpeedId) == null) {
+                    movement.addTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                            blockSpeedId, "Tokyo Ghoul RPG block slow", -0.444D,
+                            net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_TOTAL));
+                }
+            } else if (movement != null && movement.getModifier(blockSpeedId) != null) {
+                movement.removeModifier(blockSpeedId);
             }
             if (player.getPersistentData().getLong("tokyoghoul_barrage_locked_until")
                     > player.level().getGameTime()) {
