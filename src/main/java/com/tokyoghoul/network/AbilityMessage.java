@@ -5,6 +5,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import java.util.UUID;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkEvent;
@@ -92,9 +95,16 @@ public record AbilityMessage(int ability) {
         player.getPersistentData().putBoolean("tokyoghoul_rage_active", true);
         player.getPersistentData().putLong("tokyoghoul_rage_end", now + 400);
         player.getPersistentData().putLong("tokyoghoul_rage_ready", now + 1200);
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 400, 0, false, true, true));
-        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 0, false, true, true));
-        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 400, 0, false, true, true));
+        // Apply the requested base rage bonuses directly instead of potion effects
+        // whose default percentages would overshoot the design values.
+        var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (speed != null) {
+            UUID modifierId = UUID.fromString("a5d3c0b1-5f82-4e1c-9a3d-7f5b2c6e8d10");
+            speed.removeModifier(modifierId);
+            speed.addTransientModifier(new AttributeModifier(
+                    modifierId, "Tokyo Ghoul RPG rage speed", 0.05D,
+                    AttributeModifier.Operation.MULTIPLY_TOTAL));
+        }
         player.displayClientMessage(Component.literal("Ярость активирована на 20 секунд"), true);
     }
 
