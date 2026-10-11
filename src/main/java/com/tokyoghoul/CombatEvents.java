@@ -3,6 +3,8 @@ package com.tokyoghoul;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import java.util.UUID;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -16,6 +18,15 @@ public final class CombatEvents {
 
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
+        // Rage bonuses: +15% outgoing damage and -10% incoming damage at base rank.
+        if (event.getSource().getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker
+                && attacker.getPersistentData().getBoolean("tokyoghoul_rage_active")) {
+            event.setAmount(event.getAmount() * 1.15F);
+        }
+        if (event.getEntity() instanceof ServerPlayer defender
+                && defender.getPersistentData().getBoolean("tokyoghoul_rage_active")) {
+            event.setAmount(event.getAmount() * 0.90F);
+        }
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !player.getPersistentData().getBoolean("tokyoghoul_blocking")) return;
 
@@ -97,6 +108,8 @@ public final class CombatEvents {
             if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")
                     && player.level().getGameTime() >= player.getPersistentData().getLong("tokyoghoul_rage_end")) {
                 player.getPersistentData().putBoolean("tokyoghoul_rage_active", false);
+                var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+                if (speed != null) speed.removeModifier(UUID.fromString("a5d3c0b1-5f82-4e1c-9a3d-7f5b2c6e8d10"));
                 player.displayClientMessage(net.minecraft.network.chat.Component.literal("Ярость закончилась"), true);
             }
         }
