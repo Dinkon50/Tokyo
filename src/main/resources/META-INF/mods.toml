@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="tokyoghoul"
+version="${file.jarVersion}"
+displayName="Tokyo Ghoul RPG"
+authors="Tokyo Project"
+description='''Tokyo Ghoul-inspired RPG mod for Minecraft 1.20.1.'''
+displayURL="https://github.com/Dinkon50/Tokyo"
+
+[[dependencies.tokyoghoul]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.tokyoghoul]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.20.2)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.tokyoghoul]]
+    modId="geckolib"
+    mandatory=true
+    versionRange="[4.4.9,)"
+    ordering="AFTER"
+    side="BOTH"
