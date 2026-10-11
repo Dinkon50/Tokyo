@@ -7,5 +7,7 @@
   "key.tokyoghoul.block": "Блок (удерживать)",
   "key.tokyoghoul.barrage": "Шквал",
   "key.tokyoghoul.skill_tree": "Дерево навыков",
-  "key.tokyoghoul.quests": "Задания"
+  "key.tokyoghoul.quests": "Задания",
+  "key.tokyoghoul.grapple_modifier": "Модификатор крюка (с ПКМ)",
+  "key.tokyoghoul.grab_modifier": "Модификатор притягивания (с ЛКМ)"
 }
