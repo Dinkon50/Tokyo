@@ -25,6 +25,9 @@ public final class ModKeyMappings {
     public static final Lazy<KeyMapping> BARRAGE = key("key.tokyoghoul.barrage", GLFW.GLFW_KEY_K);
     public static final Lazy<KeyMapping> SKILL_TREE = key("key.tokyoghoul.skill_tree", GLFW.GLFW_KEY_B);
     public static final Lazy<KeyMapping> QUESTS = key("key.tokyoghoul.quests", GLFW.GLFW_KEY_N);
+    // Modifier actions are real KeyMappings too, so players can remap them in Controls.
+    public static final Lazy<KeyMapping> GRAPPLE_MODIFIER = key("key.tokyoghoul.grapple_modifier", GLFW.GLFW_KEY_LEFT_SHIFT);
+    public static final Lazy<KeyMapping> GRAB_MODIFIER = key("key.tokyoghoul.grab_modifier", GLFW.GLFW_KEY_LEFT_SHIFT);
 
     private static Lazy<KeyMapping> key(String name, int key) {
         return Lazy.of(() -> new KeyMapping(name, KeyConflictContext.IN_GAME, key, "key.categories.tokyoghoul"));
@@ -42,6 +45,8 @@ public final class ModKeyMappings {
         event.register(BARRAGE.get());
         event.register(SKILL_TREE.get());
         event.register(QUESTS.get());
+        event.register(GRAPPLE_MODIFIER.get());
+        event.register(GRAB_MODIFIER.get());
     }
 
     @Mod.EventBusSubscriber(modid = TokyoGhoulMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
@@ -54,14 +59,12 @@ public final class ModKeyMappings {
         public static void onMouseButton(InputEvent.MouseButton.Pre event) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null || mc.screen != null || event.getAction() != GLFW.GLFW_PRESS) return;
-            long window = mc.getWindow().getWindow();
-            boolean shift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
-                    || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
-            if (!shift) return;
-            if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            boolean grappleModifier = GRAPPLE_MODIFIER.get().isDown();
+            boolean grabModifier = GRAB_MODIFIER.get().isDown();
+            if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT && grappleModifier) {
                 NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(9));
                 event.setCanceled(true);
-            } else if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            } else if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && grabModifier) {
                 NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(10));
                 event.setCanceled(true);
             }
