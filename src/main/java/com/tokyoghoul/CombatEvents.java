@@ -42,10 +42,6 @@ public final class CombatEvents {
         if (event.player instanceof ServerPlayer player) {
             if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
                 player.setSprinting(false);
-                // Reduce walking speed while blocking without relying on potion effects.
-                if (player.isSprinting()) player.setSprinting(false);
-                net.minecraft.world.phys.Vec3 motion = player.getDeltaMovement();
-                player.setDeltaMovement(motion.x * 0.556, motion.y, motion.z * 0.556);
             }
             if (player.getPersistentData().getLong("tokyoghoul_barrage_locked_until")
                     > player.level().getGameTime()) {
