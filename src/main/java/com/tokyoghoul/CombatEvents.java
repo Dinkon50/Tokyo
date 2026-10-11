@@ -25,9 +25,15 @@ public final class CombatEvents {
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide) return;
-        if (event.player instanceof ServerPlayer player
-                && player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
-            player.setSprinting(false);
+        if (event.player instanceof ServerPlayer player) {
+            if (player.getPersistentData().getBoolean("tokyoghoul_blocking")) {
+                player.setSprinting(false);
+            }
+            if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")
+                    && player.level().getGameTime() >= player.getPersistentData().getLong("tokyoghoul_rage_end")) {
+                player.getPersistentData().putBoolean("tokyoghoul_rage_active", false);
+                player.displayClientMessage(net.minecraft.network.chat.Component.literal("Ярость закончилась"), true);
+            }
         }
     }
 }
