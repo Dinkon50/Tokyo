@@ -19,14 +19,16 @@ public final class CombatEvents {
 
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {
-        // Rage bonuses: +15% outgoing damage and -10% incoming damage at base rank.
+        // Rage bonuses scale with the persistent skill-tree rank (0..8).
         if (event.getSource().getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker
                 && attacker.getPersistentData().getBoolean("tokyoghoul_rage_active")) {
-            event.setAmount(event.getAmount() * 1.15F);
+            int rank = Math.min(8, attacker.getPersistentData().getInt("tokyoghoul_rage_rank"));
+            event.setAmount(event.getAmount() * (1.15F + rank * 0.03125F));
         }
         if (event.getEntity() instanceof ServerPlayer defender
                 && defender.getPersistentData().getBoolean("tokyoghoul_rage_active")) {
-            event.setAmount(event.getAmount() * 0.90F);
+            int rank = Math.min(8, defender.getPersistentData().getInt("tokyoghoul_rage_rank"));
+            event.setAmount(event.getAmount() * (1.0F - (0.10F + rank * 0.0375F)));
         }
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !player.getPersistentData().getBoolean("tokyoghoul_blocking")) return;
@@ -52,6 +54,14 @@ public final class CombatEvents {
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        int kills = player.getPersistentData().getInt("tokyoghoul_kills") + 1;
+        player.getPersistentData().putInt("tokyoghoul_kills", kills);
+        if (kills % 5 == 0) {
+            int points = player.getPersistentData().getInt("tokyoghoul_skill_points") + 1;
+            player.getPersistentData().putInt("tokyoghoul_skill_points", points);
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                    "Очко навыка получено! Всего: " + points), true);
+        }
         if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")) return;
         int rage = player.getPersistentData().getInt("tokyoghoul_rage_points");
         player.getPersistentData().putInt("tokyoghoul_rage_points", Math.min(100, rage + 10));
