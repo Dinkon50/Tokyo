@@ -79,7 +79,7 @@ public final class CombatEvents {
                     player.getPersistentData().putInt("tokyoghoul_barrage_hits", 0);
                 }
             }
-                        if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")
+            if (player.getPersistentData().getBoolean("tokyoghoul_rage_active")
                     && player.level().getGameTime() >= player.getPersistentData().getLong("tokyoghoul_rage_end")) {
                 player.getPersistentData().putBoolean("tokyoghoul_rage_active", false);
                 player.displayClientMessage(net.minecraft.network.chat.Component.literal("Ярость закончилась"), true);
