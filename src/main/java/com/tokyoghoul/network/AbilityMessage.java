@@ -36,6 +36,8 @@ public record AbilityMessage(int ability) {
                 case 6 -> barrage(player);
                 case 7 -> player.displayClientMessage(Component.literal("Дерево навыков: интерфейс ещё разрабатывается"), true);
                 case 8 -> player.displayClientMessage(Component.literal("Задания: система ещё разрабатывается"), true);
+                case 9 -> grapple(player);
+                case 10 -> grabPull(player);
                 default -> { }
             }
         });
@@ -70,6 +72,48 @@ public record AbilityMessage(int ability) {
         player.displayClientMessage(Component.literal("Ярость активирована на 20 секунд"), true);
     }
 
+
+
+    private static LivingEntity targetInSight(ServerPlayer player, double range) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle().normalize();
+        return player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(range),
+                e -> e != player && e.isAlive() && !e.isSpectator())
+            .stream()
+            .filter(e -> {
+                Vec3 delta = e.getBoundingBox().getCenter().subtract(eye);
+                return delta.lengthSqr() <= range * range && delta.normalize().dot(look) > 0.80;
+            })
+            .min(Comparator.comparingDouble(e -> e.distanceToSqr(player))).orElse(null);
+    }
+
+    private static void grapple(ServerPlayer player) {
+        long now = player.level().getGameTime();
+        if (player.getPersistentData().getLong("tokyoghoul_grapple_ready") > now) return;
+        LivingEntity target = targetInSight(player, 10.0);
+        if (target == null) {
+            player.displayClientMessage(Component.literal("Нет цели для крюка в пределах 10 блоков"), true);
+            return;
+        }
+        Vec3 pull = target.getBoundingBox().getCenter().subtract(player.position()).normalize();
+        player.setDeltaMovement(pull.scale(1.35).add(0, 0.18, 0));
+        player.hurtMarked = true;
+        player.getPersistentData().putLong("tokyoghoul_grapple_ready", now + 100);
+    }
+
+    private static void grabPull(ServerPlayer player) {
+        long now = player.level().getGameTime();
+        if (player.getPersistentData().getLong("tokyoghoul_grab_ready") > now) return;
+        LivingEntity target = targetInSight(player, 10.0);
+        if (target == null) {
+            player.displayClientMessage(Component.literal("Нет цели для притягивания в пределах 10 блоков"), true);
+            return;
+        }
+        Vec3 pull = player.position().subtract(target.position()).normalize();
+        target.setDeltaMovement(pull.scale(1.25).add(0, 0.15, 0));
+        target.hurtMarked = true;
+        player.getPersistentData().putLong("tokyoghoul_grab_ready", now + 200);
+    }
 
     private static void barrage(ServerPlayer player) {
         long now = player.level().getGameTime();
