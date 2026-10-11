@@ -56,7 +56,7 @@ public final class CombatEvents {
         int rage = player.getPersistentData().getInt("tokyoghoul_rage_points");
         player.getPersistentData().putInt("tokyoghoul_rage_points", Math.min(100, rage + 10));
         player.displayClientMessage(net.minecraft.network.chat.Component.literal(
-                "Ярость +" + Math.min(10, 100 - rage)), true);
+                "Ярость +" + Math.max(0, Math.min(10, 100 - rage))), true);
     }
 
     @SubscribeEvent
