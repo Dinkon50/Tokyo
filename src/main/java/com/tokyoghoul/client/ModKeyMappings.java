@@ -76,8 +76,8 @@ public final class ModKeyMappings {
             while (RAGE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(2));
             while (BITE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(3));
             while (BARRAGE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(6));
-            while (SKILL_TREE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(7));
-            while (QUESTS.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(8));
+            while (SKILL_TREE.get().consumeClick()) Minecraft.getInstance().setScreen(new SkillTreeScreen());
+            while (QUESTS.get().consumeClick()) Minecraft.getInstance().setScreen(new QuestScreen());
             boolean blocking = BLOCK.get().isDown();
             if (blocking != wasBlocking) {
                 NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(blocking ? 4 : 5));
