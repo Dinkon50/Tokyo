@@ -31,6 +31,8 @@ public record AbilityMessage(int ability) {
                 case 1 -> dash(player);
                 case 2 -> activateRage(player);
                 case 3 -> bite(player);
+                case 4 -> player.getPersistentData().putBoolean("tokyoghoul_blocking", true);
+                case 5 -> player.getPersistentData().putBoolean("tokyoghoul_blocking", false);
                 default -> { }
             }
         });
