@@ -19,6 +19,7 @@ public final class ModKeyMappings {
     public static final Lazy<KeyMapping> DASH = key("key.tokyoghoul.dash", GLFW.GLFW_KEY_H);
     public static final Lazy<KeyMapping> RAGE = key("key.tokyoghoul.rage", GLFW.GLFW_KEY_J);
     public static final Lazy<KeyMapping> BITE = key("key.tokyoghoul.bite", GLFW.GLFW_KEY_V);
+    public static final Lazy<KeyMapping> BLOCK = key("key.tokyoghoul.block", GLFW.GLFW_KEY_L);
 
     private static Lazy<KeyMapping> key(String name, int key) {
         return Lazy.of(() -> new KeyMapping(name, KeyConflictContext.IN_GAME, key, "key.categories.tokyoghoul"));
@@ -32,19 +33,27 @@ public final class ModKeyMappings {
         event.register(DASH.get());
         event.register(RAGE.get());
         event.register(BITE.get());
+        event.register(BLOCK.get());
     }
 
     @Mod.EventBusSubscriber(modid = TokyoGhoulMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static final class ClientEvents {
+        private static boolean wasBlocking = false;
         private ClientEvents() {}
 
         @SubscribeEvent
         public static void onClientTick(TickEvent.ClientTickEvent event) {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().player == null) return;
+            if (event.phase != TickEvent.Phase.END) return;
+            if (Minecraft.getInstance().player == null) { wasBlocking = false; return; }
             while (KAGUNE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(0));
             while (DASH.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(1));
             while (RAGE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(2));
             while (BITE.get().consumeClick()) NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(3));
+            boolean blocking = BLOCK.get().isDown();
+            if (blocking != wasBlocking) {
+                NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(blocking ? 4 : 5));
+                wasBlocking = blocking;
+            }
         }
     }
 }
