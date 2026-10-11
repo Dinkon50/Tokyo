@@ -6,6 +6,7 @@ import com.tokyoghoul.network.NetworkHandler;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -47,6 +48,24 @@ public final class ModKeyMappings {
     public static final class ClientEvents {
         private static boolean wasBlocking = false;
         private ClientEvents() {}
+
+
+        @SubscribeEvent
+        public static void onMouseButton(InputEvent.MouseButton.Pre event) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null || mc.screen != null || event.getAction() != GLFW.GLFW_PRESS) return;
+            long window = mc.getWindow().getWindow();
+            boolean shift = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+                    || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
+            if (!shift) return;
+            if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(9));
+                event.setCanceled(true);
+            } else if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                NetworkHandler.CHANNEL.sendToServer(new AbilityMessage(10));
+                event.setCanceled(true);
+            }
+        }
 
         @SubscribeEvent
         public static void onClientTick(TickEvent.ClientTickEvent event) {
