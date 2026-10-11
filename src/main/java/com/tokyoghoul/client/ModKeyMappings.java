@@ -27,7 +27,7 @@ public final class ModKeyMappings {
     public static final Lazy<KeyMapping> QUESTS = key("key.tokyoghoul.quests", GLFW.GLFW_KEY_N);
     // Modifier actions are real KeyMappings too, so players can remap them in Controls.
     public static final Lazy<KeyMapping> GRAPPLE_MODIFIER = key("key.tokyoghoul.grapple_modifier", GLFW.GLFW_KEY_LEFT_SHIFT);
-    public static final Lazy<KeyMapping> GRAB_MODIFIER = key("key.tokyoghoul.grab_modifier", GLFW.GLFW_KEY_LEFT_SHIFT);
+    public static final Lazy<KeyMapping> GRAB_MODIFIER = key("key.tokyoghoul.grab_modifier", GLFW.GLFW_KEY_RIGHT_SHIFT);
 
     private static Lazy<KeyMapping> key(String name, int key) {
         return Lazy.of(() -> new KeyMapping(name, KeyConflictContext.IN_GAME, key, "key.categories.tokyoghoul"));
